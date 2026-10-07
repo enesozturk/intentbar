@@ -1,0 +1,58 @@
+{
+  "name": "intentbar",
+  "version": "0.1.0",
+  "description": "Natural-language navigation for your command palette. Type what you want, land on the right page — with the model classifying into your own route list, never writing URLs.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": ["dist", "skills", "README.md", "LICENSE"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "default": "./dist/server/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "keywords": [
+    "command-palette",
+    "cmdk",
+    "navigation",
+    "semantic-search",
+    "ai",
+    "openai",
+    "decisions-api",
+    "react",
+    "nextjs",
+    "intent"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
