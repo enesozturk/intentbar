@@ -1,6 +1,6 @@
 ---
 name: intentbar-setup
-description: Installs and wires up intentbar in this codebase — reads the app's routes, writes the sitemap with real descriptions and intents, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
+description: Installs and wires up intentbar in this codebase — reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
 ---
 
 # Installing intentbar
@@ -13,6 +13,11 @@ can do.
 Work in this order. Do not skip step 1 — a sitemap written from route paths
 alone performs badly, and that is the single most common reason this feature
 feels broken.
+
+Two things in step 2 are **defaults, not options**: keeping the sitemap small
+(2a) and filling the intents list from the app's own vocabulary (2b). They are
+the only two levers on what this costs and how fast it feels, so do both without
+being asked, and report the measured result in step 7.
 
 ## 1. Learn the app before writing anything
 
@@ -36,8 +41,25 @@ create/delete flows, no checkout, no logout, no anything that acts when opened.
 The palette navigates on Enter, sometimes on a near-miss, so a destructive
 destination is a footgun. Leave auth pages out too.
 
-Keep it to the 15–40 pages people actually ask for. A sitemap of 200 routes
-makes every answer less confident, and costs more per request.
+### Collect the app's own vocabulary while you are in there
+
+You need the words users type, and this codebase already contains most of them.
+Gather, as you go:
+
+- **Translation files** — `locales/`, `messages/`, `*.json` under an `i18n`
+  directory, `next-intl` / `react-i18next` resources. This is the single richest
+  source: a localized app already states every nav label, page title and menu
+  item **in every language it ships**. Mine the keys that correspond to the
+  pages you are listing.
+- **The navigation itself** — sidebar, menu, tab and breadcrumb labels. These
+  are what the user has been reading, so they are what they type.
+- **Page headings, empty states and primary buttons** — "You have no invoices
+  yet", "Invite teammate" give you the nouns and verbs of the page.
+- **Help, FAQ or docs content** in the repo, if any. Those headings are written
+  in user language by definition.
+
+Note which languages the product ships in. You will write intents in all of
+them, not only English.
 
 ## 2. Write the sitemap
 
@@ -62,15 +84,112 @@ Rules that decide whether this works:
 - `description` says what the user DOES there, in their words, not the
   component's name. "Invite teammates and change their roles" beats "Members
   table".
-- `intents` are the phrasings people actually type, **including every language
-  your users use**. This is what makes the exact-match path (no model call,
-  instant, free) hit. Add the obvious typo-free phrasings; the model handles
-  typos itself.
 - `breadcrumb` is what the palette row shows. Match the app's own navigation
   labels, so the row looks like somewhere the user has been.
 - Give adjacent pages *distinct* descriptions. "Google Ads" and "Google Ads
   report" that read alike will split probability and abstain — the most
   confusing failure mode, because both answers were nearly right.
+
+The two rules below are not polish. They are the only two levers on what this
+feature costs and how fast it feels, so do both by default — do not ask whether
+to, and do not leave them for later.
+
+### 2a. Keep the sitemap small — a budget, not a preference
+
+Every destination — id, breadcrumb, description and all its intents — is sent on
+every lookup, so **the sitemap IS the request**. Measured against the live API:
+
+| sitemap | input tokens | per 1,000 lookups |
+| --- | --- | --- |
+| 7 lean destinations | 388 | $0.04 |
+| 15 lean | 682 | $0.07 |
+| 25 lean | 1,048 | $0.11 |
+| 25 real ones, EN+TR intents, with the scope and fallback questions | 1,793 | $0.18 |
+| 50 lean | 1,957 | $0.20 |
+
+About 130 tokens of framing plus 37–51 per destination — the spread is how long
+your descriptions and intents are. And there is **no caching discount**:
+identical repeated requests still bill full input, so this is a per-lookup cost
+forever, not a warm-up.
+
+**Target 15–30 destinations. Treat 40 as the ceiling** and say so to the user if
+you are pushing against it. Size is not only money: a long list makes every
+answer less confident, because near-duplicates split probability and the
+resolver abstains.
+
+To choose, rank candidate pages by *how often someone would ask for them* and
+cut from the bottom:
+
+- Keep: the pages in the nav, the ones support links to, the ones with their own
+  menu entry.
+- Cut: anything reachable in one click from a page you kept and rarely asked for
+  by name — sub-tabs, per-item detail views, admin-only internals, duplicate
+  report variants of a page already listed.
+- Cut: pages whose description you cannot write without repeating another
+  entry's. Two pages that need the same sentence should be one entry pointing at
+  the better landing place.
+
+Report the final count and the resulting per-1,000-lookup cost when you hand
+over.
+
+### 2b. Enrich `intents` — this is the free path
+
+An exact match against `intents` **skips the model entirely**: 0 ms, $0, no
+network. So the intents list is a cache you write by hand, and filling it is
+what makes the common phrases instant.
+
+**It is not free, though, and do not tell the user it is.** Those phrases ride
+in every request that *does* reach the model, at roughly 4 tokens each. On a
+25-destination sitemap, adding 6 intents per page costs ~600 tokens per lookup
+(+34%), which pays for itself only once it converts enough traffic to the free
+path:
+
+| intents added per destination | lookup grows by | breaks even at an exact-hit rate of |
+| --- | --- | --- |
+| 2 | +200 tokens | 10% |
+| 4 | +400 | 18% |
+| 6 | +600 | 25% |
+| 10 | +1,000 | 36% |
+
+Nav labels and page titles alone usually clear that bar, which is why they go in
+first. But the real argument is latency, and it holds either way: an exact hit
+is **0 ms with no network**, against 200–1000 ms for a model call. Enrich for
+the speed; expect the money to be roughly a wash.
+
+So: aim for **6–12 intents per destination**, ordered by how likely they are to
+be typed, built from the vocabulary you collected in step 1 rather than
+invented. Padding the list past that spends tokens on phrasings nobody types.
+
+1. **The nav label and page title**, exactly as the app shows them, in every
+   shipped language. From the translation files — these are free wins, because
+   the user is typing what they just read in the sidebar.
+2. **The thing itself, as a bare noun**: "invoices", "faturalar", "orders".
+3. **The task, as the user would say it**: "change my plan", "invite someone",
+   "refund an order", "şifre değiştir".
+4. **The obvious synonym** your UI does *not* use: if the page is "Members",
+   users type "team", "ekip", "colleagues", "users".
+5. **Abbreviations and the words support uses** on the phone: "2FA", "MFA",
+   "SSO", "kargo".
+
+Two things that decide whether these actually hit:
+
+- **Matching is whole-phrase and case-insensitive, not stemmed.** "faturalar"
+  does not match "faturalarım". In agglutinative languages (Turkish, Finnish,
+  Hungarian) that means writing the inflected forms users really type:
+  `["fatura", "faturalar", "faturalarım"]`. In English the same applies to
+  singular/plural: `["invoice", "invoices"]`.
+- **Do not add misspellings.** The model handles typos — measured, "dashbard"
+  resolves at 1.00 — so a list of typos is noise that costs tokens on every
+  lookup.
+
+Keep each intent a short phrase. A whole sentence will never be typed verbatim,
+so it buys nothing in the exact path and only enlarges the request.
+
+If the project has search or analytics logs for its own palette or help centre
+(a `search_queries` table, a PostHog/Amplitude event, support macros), read the
+top queries and put the real ones in. Ask the user whether such a source exists
+rather than assuming it does not — it is the difference between guessed
+vocabulary and theirs.
 
 ## 3. Mount the handler
 
@@ -196,15 +315,32 @@ confidence:
 const result = await resolveIntent(phrase, { sitemap, provider: decisionsProvider() });
 ```
 
-Include cases that *should* abstain (off-topic text, gibberish). Then report the
-hit rate and anything that surprised you. Two failures worth knowing how to
-read:
+Include cases that *should* abstain (off-topic text, gibberish). Print
+`result.method` alongside the id — `"exact"` means the intents list answered and
+no request was made.
+
+Then measure the two levers from step 2, because "I enriched the intents" is not
+a result:
+
+1. **Exact-hit rate.** Take the nav label and page title of every destination,
+   plus the phrasings you expect to be most common, and run them. Every one of
+   those *should* come back `method: "exact"`. Any that calls the model is a
+   phrasing missing from that page's `intents` — add it and re-run. This is the
+   cheap loop: each one you fix is a lookup that is free and instant forever.
+2. **Cost per 1,000 lookups.** Count the destinations and read it off the table
+   in step 2a (~130 tokens + ~37 each, at $0.10/1M input). Report the number.
+
+Two failures worth knowing how to read:
 
 - **A phrase lands just under the threshold** — usually a description that does
   not contain the words users type. Fix the sitemap entry, not the threshold.
 - **Two sibling pages split the probability** (0.47/0.46) and it abstains. Their
-  descriptions overlap. Make them distinct, or accept the abstain: on a genuine
-  coin flip, abstaining beats guessing.
+  descriptions overlap. Make them distinct, merge them, or accept the abstain:
+  on a genuine coin flip, abstaining beats guessing.
 
-Tell the user the measured numbers and the per-request cost, not a claim that it
-works.
+Hand over with the measured numbers, not a claim that it works:
+
+> 24 destinations, $0.10 per 1,000 lookups. 19 of 24 nav labels resolve
+> exact (free, 0 ms); the 5 that call the model do so at 0.95+. 14 test
+> phrases across EN and TR: 13 as expected, 1 abstains (`X` splits between
+> A and B — their descriptions overlap, worth a look).

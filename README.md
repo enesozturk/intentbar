@@ -212,8 +212,17 @@ version of the same row.
 ## What it costs
 
 One request per settled phrase, typically **0.2–0.5s**. Input only — the
-Decisions API charges no output tokens — so a 25-destination sitemap works out
-around **$0.0002 per lookup**. Exact `intents` hits are free and synchronous.
+Decisions API charges no output tokens, and there is no caching discount, so
+every lookup bills the whole sitemap.
+
+Measured: **$0.11 per 1,000 lookups** for 25 lean destinations, **$0.18** for 25
+real ones with two-language intents and both optional questions. A storefront
+with a million monthly users, where only navigational text reaches intentbar,
+lands in single-digit dollars a month.
+
+Exact `intents` hits cost nothing and skip the network entirely, so the two
+levers are a short sitemap and a well-filled intents list. Both are in the
+`intentbar-setup` skill as defaults.
 
 ## Configuration
 
@@ -223,7 +232,7 @@ around **$0.0002 per lookup**. Exact `intents` hits are free and synchronous.
 | `fallback.threshold` | `0.6` | The predicate separates sharply, so this rarely needs tuning. |
 | `provider` | Decisions API | Any `(request) => Promise<{ answers }>`. |
 | `scopedPath` | `/${scope.id}${path}` | For apps that nest tenants differently. |
-| `appContext` | generic | One sentence on what your app is. Worth setting. |
+| `appContext` | — | One sentence on what your app is, **added** to intentbar's own framing. Worth setting. |
 | `onError` | — | Send failures to your monitoring; a silent abstain hides a broken key for weeks. |
 
 ## Guarantees
