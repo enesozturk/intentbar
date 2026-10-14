@@ -1,6 +1,6 @@
 ---
 name: intentbar-setup
-description: Installs and wires up intentbar in this codebase — reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
+description: Installs and wires up intentbar in this codebase — copies in a ready shadcn/ui command palette when the app has none, reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
 ---
 
 # Installing intentbar
@@ -246,11 +246,78 @@ any client-visible config; that key would be in the bundle.
 If the project already has `OPENAI_API_KEY`, reuse it. Say so rather than adding
 a second one.
 
-## 5. Wire the palette
+## 5. The palette
 
-Find the existing palette — `cmdk`, a Radix dialog, a custom one — and add rows
-to it. Do not build a new palette; match what is there, including its row
-markup, icon sizing and selected-row styling.
+There are two routes here and they are not interchangeable. **Look first:**
+search for `cmdk`, `CommandDialog`, "command palette", a ⌘K key handler.
+
+- **The app already has a palette** → 5b. Add rows to theirs. Never replace a
+  palette someone already built and styled.
+- **It has none** → 5a. Copy in the ready one.
+
+### 5a. Copy in the palette (no palette exists yet)
+
+The package ships `templates/command-palette.tsx`, written against shadcn/ui's
+current `command` and `dialog` components. It is copied into the project rather
+than imported, the way shadcn distributes components, so the team owns and can
+restyle it.
+
+**Check the prerequisites before copying anything.** This template is Tailwind +
+shadcn/ui. Dropping it into a project without them produces an unstyled,
+broken-looking bar, which is worse than no feature:
+
+1. **Tailwind** — a `tailwind.config.*`, or a `@import "tailwindcss"` in the
+   global stylesheet for v4. **If there is no Tailwind, stop and say so.** Offer
+   the alternatives: wire intentbar into whatever UI they do have with the
+   headless hook (5b), or let them add Tailwind first. Do not copy the file and
+   hope.
+2. **shadcn/ui** — a `components.json`, and `cn` in `@/lib/utils`. If shadcn is
+   set up but `command` or `dialog` is missing, add them with the project's own
+   CLI: `npx shadcn@latest add command dialog`.
+3. The alias the project actually uses. `components.json` has `aliases.ui` —
+   it is often `@/components/ui`, but not always, and the template's imports
+   must match. Fix them while copying, not after.
+
+Then copy it to the project's component directory (`components/intentbar/` is a
+reasonable home), install `cmdk` and `lucide-react` if `shadcn add` did not, and
+mount it where the app's layout lives:
+
+```tsx
+const [open, setOpen] = React.useState(false);
+const router = useRouter();
+
+<CommandPalette
+  open={open}
+  onOpenChange={setOpen}
+  onNavigate={(path) => router.push(path)}
+  scopeId={currentWorkspaceSlug} // omit in a single-tenant app
+  commands={[
+    { id: "settings", label: "Settings", perform: () => router.push("/settings") },
+  ]}
+/>;
+```
+
+It binds ⌘K/Ctrl+K itself. Pass the app's existing palette entries (or its main
+nav items) as `commands` so it is a real palette rather than only an AI row —
+typing one of those labels exactly is also what stops a known command from
+costing a model call.
+
+Two things in that file worth knowing before you edit it:
+
+- It composes `Dialog` + `Command` **instead of** shadcn's `CommandDialog`,
+  deliberately. `CommandDialog` spreads its props onto `Dialog` and hands the
+  cmdk root a fixed `className`, so there is no way through it to pass the
+  controlled `value` and the custom `filter`. Both are required: the resolved
+  rows do not contain the typed text, so cmdk's default scorer hides them.
+- The resolved rows' values are prefixed `intentbar-`, and `paletteFilter`
+  returns 1 for that prefix. Keep the prefix if you rename things.
+
+### 5b. Wire the existing palette
+
+Find the palette — `cmdk`, a Radix dialog, a custom one — and add rows to it.
+Match what is there, including its row markup, icon sizing and selected-row
+styling. `templates/command-palette.tsx` is a working reference for the
+behaviour even when you are not copying it.
 
 ```tsx
 const { resolution, isResolving, error } = useIntentbar(search, {

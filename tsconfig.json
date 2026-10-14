@@ -12,7 +12,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      // The template is written as it lands in the user's project. These map
+      // those imports to type-only fixtures so it can be typechecked here.
+      // Exact files, because NodeNext resolution will not add an extension.
+      "@/components/ui/command": ["./templates/__fixtures__/ui/command.d.ts"],
+      "@/components/ui/dialog": ["./templates/__fixtures__/ui/dialog.d.ts"],
+      "intentbar/react": ["./src/react/index.ts"]
+    }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "templates"]
 }

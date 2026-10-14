@@ -101,7 +101,31 @@ anything the client can read.
 **`authorize` is not optional in practice.** Without it the endpoint is open to
 anyone who can reach it, and every request spends your API budget.
 
-## 3. The palette row
+## 3a. The palette, if you do not have one
+
+`templates/command-palette.tsx` ships with the package: a full ⌘K palette built
+on **shadcn/ui's current `command` and `dialog`** components. The setup skill
+copies it into your project — shadcn-style, so it is yours to restyle — after
+checking you have Tailwind and shadcn, and adding `command`/`dialog` if they are
+missing.
+
+```tsx
+<CommandPalette
+  open={open}
+  onOpenChange={setOpen}
+  onNavigate={(path) => router.push(path)}
+  commands={[{ id: "settings", label: "Settings", perform: () => router.push("/settings") }]}
+/>
+```
+
+It binds ⌘K, renders the resolved page, the Ask row, and the resolving/empty/
+error states, and composes `Dialog` + `Command` directly — shadcn's
+`CommandDialog` cannot forward the controlled `value` and custom `filter` the
+resolved rows need.
+
+No Tailwind? Use the hook below against your own UI.
+
+## 3b. The palette row, if you already have a palette
 
 ```tsx
 import { useIntentbar } from "intentbar/react";

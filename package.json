@@ -1,11 +1,17 @@
 {
   "name": "intentbar",
   "version": "0.1.0",
-  "description": "Natural-language navigation for your command palette. Type what you want, land on the right page — with the model classifying into your own route list, never writing URLs.",
+  "description": "Natural-language navigation for your command palette. Type what you want, land on the right page \u2014 with the model classifying into your own route list, never writing URLs.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
-  "files": ["dist", "skills", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "skills",
+    "templates/command-palette.tsx",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -37,6 +43,8 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
+    "cmdk": "^1.1.1",
+    "lucide-react": "^1.57.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   },
