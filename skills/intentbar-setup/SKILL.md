@@ -74,7 +74,7 @@ export const sitemap = defineSitemap([
     path: "/settings/billing",
     breadcrumb: ["Settings", "Billing"],
     description: "Invoices, the current plan, and the payment method on file.",
-    intents: ["billing", "invoices", "change my plan", "faturalar", "plan değiştir"],
+    intents: ["billing", "invoices", "change my plan", "payment method"],
   },
 ]);
 ```
@@ -163,21 +163,21 @@ invented. Padding the list past that spends tokens on phrasings nobody types.
 1. **The nav label and page title**, exactly as the app shows them, in every
    shipped language. From the translation files — these are free wins, because
    the user is typing what they just read in the sidebar.
-2. **The thing itself, as a bare noun**: "invoices", "faturalar", "orders".
+2. **The thing itself, as a bare noun**: "invoices", "orders", "members".
 3. **The task, as the user would say it**: "change my plan", "invite someone",
-   "refund an order", "şifre değiştir".
+   "refund an order", "reset a password".
 4. **The obvious synonym** your UI does *not* use: if the page is "Members",
-   users type "team", "ekip", "colleagues", "users".
+   users type "team", "colleagues", "users".
 5. **Abbreviations and the words support uses** on the phone: "2FA", "MFA",
-   "SSO", "kargo".
+   "SSO", "shipping".
 
 Two things that decide whether these actually hit:
 
-- **Matching is whole-phrase and case-insensitive, not stemmed.** "faturalar"
-  does not match "faturalarım". In agglutinative languages (Turkish, Finnish,
-  Hungarian) that means writing the inflected forms users really type:
-  `["fatura", "faturalar", "faturalarım"]`. In English the same applies to
-  singular/plural: `["invoice", "invoices"]`.
+- **Matching is whole-phrase and case-insensitive, not stemmed.** "invoice"
+  does not match "invoices", so write both: `["invoice", "invoices"]`. In a
+  heavily inflected language (Turkish, Finnish, Hungarian) one noun can take a
+  dozen forms — write the two or three users actually type, in every language
+  the app ships.
 - **Do not add misspellings.** The model handles typos — measured, "dashbard"
   resolves at 1.00 — so a list of typos is noise that costs tokens on every
   lookup.

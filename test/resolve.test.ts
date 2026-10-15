@@ -15,7 +15,7 @@ const SITEMAP = defineSitemap([
     path: "/settings/billing",
     breadcrumb: ["Settings", "Billing"],
     description: "Invoices, plan and payment method.",
-    intents: ["billing", "invoices", "faturalar"],
+    intents: ["billing", "invoices"],
   },
   {
     id: "members",
@@ -80,7 +80,7 @@ test("an exact sitemap phrase resolves without a model call", async () => {
 
 test("free text resolves to the page the model picks", async () => {
   const model = fakeProvider([choice("destination", "members")]);
-  const result = await resolveIntent("ekibe birini nasıl eklerim", { sitemap: SITEMAP, provider: model.provider });
+  const result = await resolveIntent("cómo agrego a alguien al equipo", { sitemap: SITEMAP, provider: model.provider });
 
   assert.equal(result.status === "matched" && result.path, "/settings/members");
   assert.equal(result.status === "matched" && result.method, "model");
@@ -153,7 +153,7 @@ test("malicious or malformed input never reaches the model", async () => {
 });
 
 test("Unicode survives normalization", () => {
-  assert.equal(normalizeQuery("  şifremi   değiştir "), "şifremi değiştir");
+  assert.equal(normalizeQuery("  cómo   está mi cuenta "), "cómo está mi cuenta");
 });
 
 // The questions share one input, so a phrase carrying quotes or newlines must
@@ -246,7 +246,7 @@ test("scopes: name plus an exact phrase needs no model call", async () => {
 
 test("scopes: a single-scope app is never asked which one", async () => {
   const model = fakeProvider([choice("destination", "billing")]);
-  const result = await resolveIntent("faturalarımı görmek istiyorum", {
+  const result = await resolveIntent("quiero ver mis facturas", {
     sitemap: SITEMAP,
     scopes: [SCOPES[0]!],
     provider: model.provider,

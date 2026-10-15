@@ -15,42 +15,42 @@ const sitemap = defineSitemap([
     path: "/settings/billing",
     breadcrumb: ["Settings", "Billing"],
     description: "Invoices, the current plan, and the payment method on file.",
-    intents: ["billing", "invoices", "change my plan", "faturalar"],
+    intents: ["billing", "invoices", "change my plan", "payment method"],
   },
   {
     id: "members",
     path: "/settings/members",
     breadcrumb: ["Settings", "Members"],
     description: "Invite teammates, remove them, and change their roles.",
-    intents: ["add member", "invite someone", "ekibe birini ekle"],
+    intents: ["add member", "invite someone", "team"],
   },
   {
     id: "profile",
     path: "/settings/profile",
     breadcrumb: ["Settings", "Profile"],
     description: "Your own name, email, password and notification preferences.",
-    intents: ["profile", "change password", "şifre değiştir"],
+    intents: ["profile", "change password", "notifications"],
   },
   {
     id: "dashboard",
     path: "/dashboard",
     breadcrumb: ["Dashboard"],
     description: "Overview of revenue, orders and traffic for the last weeks.",
-    intents: ["dashboard", "overview", "panel"],
+    intents: ["dashboard", "overview"],
   },
   {
     id: "orders",
     path: "/orders",
     breadcrumb: ["Orders"],
     description: "Every order, its status, and refunds for individual orders.",
-    intents: ["orders", "refund an order", "siparişler"],
+    intents: ["orders", "refund an order"],
   },
   {
     id: "products",
     path: "/products",
     breadcrumb: ["Products"],
     description: "The product catalogue: prices, stock levels and variants.",
-    intents: ["products", "stock", "ürünler", "fiyat güncelle"],
+    intents: ["products", "stock", "update a price"],
   },
   {
     id: "assistant",
@@ -69,16 +69,18 @@ const scopes = [
 /** Typed text, and the id a human would expect — "fallback", or null to show nothing. */
 const CASES: [string, string | null][] = [
   ["invoices", "settings-billing"],
-  ["ekibe birini nasıl eklerim", "members"],
+  // The sitemap is English-only: these prove the model still reads a query
+  // written in another language.
+  ["cómo agrego a alguien al equipo", "members"],
   ["where do I change my password", "profile"],
-  ["acme stok durumu", "products"],
+  ["acme niveles de stock", "products"],
   ["refund an order", "orders"],
-  // Genuinely both: the dashboard matches at 0.93 AND the fallback at 1.00.
+  // Genuinely both: the dashboard matches at 0.73 AND the fallback at 0.98.
   // The UI shows the question first and the page below it, so "fallback" is what
   // Enter does — see "When both are present" in the README.
   ["how did last week go", "fallback"],
   ["why did my revenue drop last week", "fallback"],
-  ["hangi ürün en çok satıyor", "fallback"],
+  ["which product sells best", "fallback"],
   ["what's the weather in Istanbul", null],
   ["asdfgh qwerty", null],
 ];

@@ -4,7 +4,7 @@ Natural-language navigation for your command palette. The user types where they
 want to go — in any language, with typos — and lands on the right page.
 
 ```
-⌘K  ekibe birini nasıl eklerim
+⌘K  how do i add someone to the team
     ───────────────────────────────────────────
     Go to
     ✦ Settings › Members                     ↵
@@ -60,14 +60,14 @@ export const sitemap = defineSitemap([
     path: "/settings/billing",
     breadcrumb: ["Settings", "Billing"],
     description: "Invoices, the current plan, and the payment method on file.",
-    intents: ["billing", "invoices", "change my plan", "faturalar"],
+    intents: ["billing", "invoices", "change my plan", "payment method"],
   },
   {
     id: "members",
     path: "/settings/members",
     breadcrumb: ["Settings", "Members"],
     description: "Invite teammates and change their roles.",
-    intents: ["add member", "invite someone", "ekip"],
+    intents: ["add member", "invite someone", "team"],
   },
 ]);
 ```
@@ -207,8 +207,8 @@ separates cleanly in practice:
 | prompt-like | | destination-like | |
 | --- | --- | --- | --- |
 | `how are my ads performing` | 0.94 | `billing settings` | 0.00 |
-| `reklamlarım nasıl gidiyor` | 0.97 | `add workspace member` | 0.00 |
-| `why did my cpa go up last week` | 1.00 | `show me the tasks board` | 0.00 |
+| `why did my cpa go up last week` | 1.00 | `add workspace member` | 0.00 |
+| `which product sells best` | 0.97 | `show me the tasks board` | 0.00 |
 
 Give it its own row and let it take Enter: the user wrote a question, not a
 destination. Override `fallback.instructions` to point it at a docs search, a
@@ -217,7 +217,8 @@ ticket form, or anything else.
 ### When both are present
 
 A confident page match and a strong fallback are not exclusive. "How did last
-week go" matches a Dashboard page at 0.93 *and* scores 1.00 as a question —
+week go" matches a Dashboard page at 0.73 — just over the threshold — *and*
+scores 0.98 as a question,
 because both answers are right. intentbar returns both, with their numbers, and
 does not pick for you.
 

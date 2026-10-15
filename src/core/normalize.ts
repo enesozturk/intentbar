@@ -7,7 +7,7 @@ export const MAX_QUERY_LENGTH = 200;
  * Control characters, backslashes and encoded traversal are rejected rather
  * than stripped: none of them occur in a genuine "where do I go" phrase, and
  * rejecting is the behaviour you can reason about later. Unicode is preserved,
- * so "şifremi değiştir" survives intact.
+ * so "cómo está mi cuenta" survives intact.
  */
 export function normalizeQuery(input: string): string | null {
   const trimmed = input.trim().replace(/\s+/g, " ");
