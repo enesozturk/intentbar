@@ -127,7 +127,7 @@ every lookup, so **the sitemap IS the request**. Measured against the live API:
 | 7 lean destinations | 388 | $0.04 |
 | 15 lean | 682 | $0.07 |
 | 25 lean | 1,048 | $0.11 |
-| 25 real ones, EN+TR intents, with the scope and fallback questions | 1,793 | $0.18 |
+| 25 real ones, intents in two languages, both optional questions | 1,793 | $0.18 |
 | 50 lean | 1,957 | $0.20 |
 
 About 130 tokens of framing plus 37–51 per destination — the spread is how long
@@ -238,21 +238,11 @@ Use the project's existing auth helper — find it, do not invent one. If the
 codebase wraps route handlers (error capture, rate limiting, logging), wrap this
 one the same way; follow the convention already in the repo.
 
-If the app is multi-tenant (workspaces, teams, orgs, projects in the URL), add
-`getScopes`. **Read it from the session, never from the request body** — it is
-the list of places the user is allowed to be sent, and the whole safety property
-depends on the server owning it:
-
-```ts
-getScopes: async (request) => {
-  const user = await getSession(request);
-  return (await listUserWorkspaces(user.id)).map((ws) => ({
-    id: ws.slug,
-    name: ws.name,
-    meta: { logoUrl: ws.logoUrl },
-  }));
-},
-```
+That is the whole endpoint for most apps. **If, and only if, the URLs carry a
+workspace, team, org or project**, intentbar can also resolve "acme billing" to
+Billing inside Acme; that is one extra option on this same handler, documented
+in `docs/multi-tenant.md` in the intentbar checkout. Nothing else in this skill
+changes, so leave it out unless the app actually has tenants in the URL.
 
 For a server without Web-standard `Request`/`Response` (Express, older Node),
 adapt at the edge — `createHandler` returns `(Request) => Promise<Response>`
@@ -321,7 +311,7 @@ const router = useRouter();
   open={open}
   onOpenChange={setOpen}
   onNavigate={(path) => router.push(path)}
-  scopeId={currentWorkspaceSlug} // omit in a single-tenant app
+  scopeId={currentWorkspaceSlug} // multi-tenant apps only; omit otherwise
   commands={[
     { id: "settings", label: "Settings", perform: () => router.push("/settings") },
   ]}
@@ -352,7 +342,7 @@ behaviour even when you are not copying it.
 
 ```tsx
 const { resolution, isResolving, error } = useIntentbar(search, {
-  scopeId: currentWorkspaceSlug, // omit in a single-tenant app
+  scopeId: currentWorkspaceSlug, // multi-tenant apps only; omit otherwise
   // Typing a command the palette already lists must not cost a model call.
   enabled: !isExistingCommand,
 });
@@ -370,9 +360,9 @@ Then:
   failure makes the feature look dead.
 - Navigate with the app's own router to `match.path`. It is already a complete
   in-app path; do not prefix it again.
-- If a scope came back with `isCurrent: false`, say so in the row ("Switch to
-  Acme"), using `resolution.scope.meta` for the logo. Moving someone between
-  tenants without telling them is disorienting.
+- Multi-tenant apps only: if `resolution.scope` came back with
+  `isCurrent: false`, say so in the row ("Switch to Acme"). Moving someone
+  between tenants without telling them is disorienting.
 
 ## 6. The fallback row (optional, but this is the good part)
 
@@ -382,7 +372,7 @@ destination, and without this the palette answers it with "no matching page".
 
 ```ts
 fallback: {
-  path: (query, scope) => `/${scope?.id ?? ""}/chat?prompt=${encodeURIComponent(query)}`,
+  path: (query) => `/chat?prompt=${encodeURIComponent(query)}`, // add the tenant here if the app has one
 },
 ```
 

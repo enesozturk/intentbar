@@ -21,8 +21,6 @@ list is an abstention, not a redirect.
   model can return. Swap the provider if you want a different one.
 - **Free and instant for known phrases.** An exact hit in your `intents` list
   skips the model entirely.
-- **Multi-tenant aware.** "acme billing" opens Billing in Acme — and only if the
-  session says that user belongs to Acme.
 
 ## Install
 
@@ -66,9 +64,16 @@ use whatever alias you vendored into.
 
 ## 1. The sitemap
 
-This is the whole product. `description` and `intents` are what the model
-reasons over, so write what a person comes to the page to **do**, in the words
-your users actually type.
+**Let the skill write this one.** It is the whole product — `description` and
+`intents` are what the model reasons over — and writing it well means reading
+every page of the app, then mining the nav labels, page headings and
+translation files for the words users actually type. `/intentbar-setup` does
+exactly that, and finishes by measuring how many of your real phrases resolve
+for free.
+
+Hand-written from a list of route paths, it performs badly, and that is the
+single most common reason this feature feels broken. The shape, for reading the
+generated file:
 
 ```ts
 // intentbar.sitemap.ts
@@ -176,35 +181,6 @@ answer for an earlier phrase can never become what Enter does.
 > If your palette is `cmdk` with a custom `filter`, return `1` for these rows.
 > They do not contain the typed text, so the default filter hides them.
 
-## Multi-tenant apps
-
-Pass the caller's scopes from the **session**. This list is the complete set of
-places a user can be sent, whatever they type.
-
-```ts
-export const POST = createHandler({
-  sitemap,
-  getScopes: async (request) => {
-    const user = await getSession(request);
-    return (await listWorkspaces(user.id)).map((ws) => ({
-      id: ws.slug,
-      name: ws.name,
-      meta: { logoUrl: ws.logoUrl },
-    }));
-  },
-});
-```
-
-```tsx
-const { resolution } = useIntentbar(search, { scopeId: currentSlug });
-// resolution.scope → { id, name, meta, isCurrent }
-```
-
-Naming a scope is handled in code, not by the model: it is more reliable, one
-question cheaper, and it sharpens the destination answer. (Measured: the full
-phrase "acme dashbard" scored 0.70 for the dashboard page, while "dashbard"
-alone scored 0.97 — "acme" leaks probability onto workspace-ish pages.)
-
 ## The fallback row
 
 Some text is not a destination. "How are my ads performing" is a question, and
@@ -214,7 +190,7 @@ answering it with "no matching page found" is a dead end.
 export const POST = createHandler({
   sitemap,
   fallback: {
-    path: (query, scope) => `/${scope?.id}/chat?prompt=${encodeURIComponent(query)}`,
+    path: (query) => `/chat?prompt=${encodeURIComponent(query)}`,
   },
 });
 ```
@@ -275,9 +251,15 @@ levers are a short sitemap and a well-filled intents list. Both are in the
 | `confidenceThreshold` | `0.72` | Below this it abstains. Raise if users complain about wrong jumps; lower if the palette feels deaf. |
 | `fallback.threshold` | `0.6` | The predicate separates sharply, so this rarely needs tuning. |
 | `provider` | Decisions API | Any `(request) => Promise<{ answers }>`. |
-| `scopedPath` | `/${scope.id}${path}` | For apps that nest tenants differently. |
 | `appContext` | — | One sentence on what your app is, **added** to intentbar's own framing. Worth setting. |
 | `onError` | — | Send failures to your monitoring; a silent abstain hides a broken key for weeks. |
+
+### Multi-tenant apps
+
+If your URLs carry a workspace, team or org, intentbar can resolve "acme
+billing" to Billing inside Acme — and only when the session says that user
+belongs to Acme. It is off until you pass scopes, so it adds nothing to a
+single-tenant install: [docs/multi-tenant.md](docs/multi-tenant.md).
 
 ## Guarantees
 
@@ -286,7 +268,6 @@ put in front of users:
 
 - A destination id the sitemap does not contain is **rejected**, never turned
   into a path.
-- A scope the server did not supply **falls back to the current one**.
 - Low confidence, an explicit abstain, or a refused question all **leave the
   user where they are**.
 - Control characters, backslashes and encoded traversal in the input are
