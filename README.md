@@ -14,7 +14,7 @@ The model never writes a URL. It picks an **id from your own route list**, and
 the path is assembled server-side from that list. An answer that is not on the
 list is an abstention, not a redirect.
 
-- **Zero dependencies.** One `fetch` call; React is an optional peer.
+- **Zero dependencies.** One `fetch` call; the React hook is optional.
 - **Typed answers, not generated text.** Built on [OpenAI's Decisions
   API](https://developers.openai.com/api/docs/guides/decisions) (`choice` and
   `predicate` questions), so a malformed or invented answer is not a shape the
@@ -26,23 +26,43 @@ list is an abstention, not a redirect.
 
 ## Install
 
-```bash
-npm i intentbar
-```
+intentbar is **not an npm package**. It is ~1,100 lines of dependency-free
+TypeScript and the palette is meant to be restyled, so it is distributed the way
+shadcn distributes components: the code is copied into your project and is yours
+from then on.
 
-Then, in Claude Code or any agent that reads skills:
+The recommended path is the skill. In Claude Code, or any agent that reads
+skills:
 
 ```
 /intentbar-setup
 ```
 
-The skill reads your router, writes the sitemap with real descriptions and
-phrasings, mounts the handler, wires your existing palette and verifies the
-result against the live API. That is the recommended path, because the sitemap
-is the part that decides whether this works and it has to be written from your
-codebase, not from a template.
+It clones this repo, copies the code in, reads your router, writes the sitemap
+with real descriptions and phrasings, mounts the handler, wires your existing
+palette and verifies the result against the live API. The sitemap is the part
+that decides whether this works, and it has to be written from your codebase
+rather than from a template — which is why a copy command alone is not the whole
+install.
 
-To do it by hand, the three pieces are below.
+By hand, the copy is one script:
+
+```bash
+git clone git@github.com:enesozturk/intentbar.git
+cd intentbar
+
+node scripts/vendor.mjs ../my-app/src/lib/intentbar \
+  --palette ../my-app/src/components/command-palette.tsx \
+  --alias @/lib/intentbar
+```
+
+That copies the resolver, the server handler, the React hook and (with
+`--palette`) the ready ⌘K component, rewriting imports for your bundler and
+alias. Re-run it on a newer checkout to take updates — the diff shows up in your
+own version control.
+
+The three pieces to wire up are below. The examples assume `@/lib/intentbar`;
+use whatever alias you vendored into.
 
 ## 1. The sitemap
 
@@ -52,7 +72,7 @@ your users actually type.
 
 ```ts
 // intentbar.sitemap.ts
-import { defineSitemap } from "intentbar";
+import { defineSitemap } from "@/lib/intentbar";
 
 export const sitemap = defineSitemap([
   {
@@ -84,7 +104,7 @@ which works as a Next.js route handler, a Hono route, a Worker, Bun, Deno.
 
 ```ts
 // app/api/intentbar/route.ts
-import { createHandler } from "intentbar/server";
+import { createHandler } from "@/lib/intentbar/server";
 
 import { sitemap } from "@/intentbar.sitemap";
 
@@ -103,11 +123,10 @@ anyone who can reach it, and every request spends your API budget.
 
 ## 3a. The palette, if you do not have one
 
-`templates/command-palette.tsx` ships with the package: a full ⌘K palette built
-on **shadcn/ui's current `command` and `dialog`** components. The setup skill
-copies it into your project — shadcn-style, so it is yours to restyle — after
-checking you have Tailwind and shadcn, and adding `command`/`dialog` if they are
-missing.
+`templates/command-palette.tsx` is a full ⌘K palette built on **shadcn/ui's
+current `command` and `dialog`** components, copied in by `--palette` above. The
+setup skill checks you have Tailwind and shadcn first, and adds
+`command`/`dialog` if they are missing.
 
 ```tsx
 <CommandPalette
@@ -128,7 +147,7 @@ No Tailwind? Use the hook below against your own UI.
 ## 3b. The palette row, if you already have a palette
 
 ```tsx
-import { useIntentbar } from "intentbar/react";
+import { useIntentbar } from "@/lib/intentbar/react";
 
 function Palette({ search }: { search: string }) {
   const { resolution, isResolving, error } = useIntentbar(search, {
@@ -277,7 +296,9 @@ put in front of users:
 
 ## Status
 
-`0.1.0`. The Decisions API is in public beta and currently serves one model
+Experimental, and deliberately not on npm — there is no release to depend on,
+no semver promise and no update channel beyond re-running the vendor script. The
+Decisions API is itself in public beta and currently serves one model
 (`gpt-6-luna`); if its shape changes, `src/core/providers/decisions.ts` is the
 only file that follows.
 

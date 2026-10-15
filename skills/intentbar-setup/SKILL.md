@@ -1,6 +1,6 @@
 ---
 name: intentbar-setup
-description: Installs and wires up intentbar in this codebase — copies in a ready shadcn/ui command palette when the app has none, reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
+description: Installs and wires up intentbar in this codebase — there is no npm package, so it copies the resolver in from the intentbar repo, adds a ready shadcn/ui command palette when the app has none, reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
 ---
 
 # Installing intentbar
@@ -18,6 +18,29 @@ Two things in step 2 are **defaults, not options**: keeping the sitemap small
 (2a) and filling the intents list from the app's own vocabulary (2b). They are
 the only two levers on what this costs and how fast it feels, so do both without
 being asked, and report the measured result in step 7.
+
+## 0. Copy the code in
+
+intentbar is not published to npm. It is dependency-free TypeScript that is
+copied into the project, shadcn-style, by a script in its own repo:
+
+```bash
+git clone git@github.com:enesozturk/intentbar.git /tmp/intentbar
+node /tmp/intentbar/scripts/vendor.mjs <project>/src/lib/intentbar --alias @/lib/intentbar
+```
+
+Pick the target from the project's own layout and alias — `src/lib/`, `lib/`,
+`app/lib/`, a `packages/*` workspace — and pass the alias that resolves there
+(`tsconfig.json` `paths`, or `components.json` `aliases`). Everything after this
+imports from `<alias>`, `<alias>/server` and `<alias>/react`; the examples below
+write `@/lib/intentbar`, so substitute yours.
+
+Add `--palette <file> ` to that command in step 5a, not here: whether the
+palette is copied at all depends on what you find in step 5.
+
+If the checkout already exists, `git -C /tmp/intentbar pull` first, and re-run
+the script to take updates. Copied files carry a header naming the commit they
+came from.
 
 ## 1. Learn the app before writing anything
 
@@ -66,7 +89,7 @@ them, not only English.
 Create `intentbar.sitemap.ts` (or wherever the project keeps constants):
 
 ```ts
-import { defineSitemap } from "intentbar";
+import { defineSitemap } from "@/lib/intentbar";
 
 export const sitemap = defineSitemap([
   {
@@ -198,7 +221,7 @@ Match the project's framework:
 
 ```ts
 // Next.js App Router — app/api/intentbar/route.ts
-import { createHandler } from "intentbar/server";
+import { createHandler } from "@/lib/intentbar/server";
 
 import { sitemap } from "@/intentbar.sitemap";
 
@@ -257,10 +280,9 @@ search for `cmdk`, `CommandDialog`, "command palette", a ⌘K key handler.
 
 ### 5a. Copy in the palette (no palette exists yet)
 
-The package ships `templates/command-palette.tsx`, written against shadcn/ui's
-current `command` and `dialog` components. It is copied into the project rather
-than imported, the way shadcn distributes components, so the team owns and can
-restyle it.
+The repo ships `templates/command-palette.tsx`, written against shadcn/ui's
+current `command` and `dialog` components. It is copied into the project, the
+way shadcn distributes components, so the team owns and can restyle it.
 
 **Check the prerequisites before copying anything.** This template is Tailwind +
 shadcn/ui. Dropping it into a project without them produces an unstyled,
@@ -278,9 +300,18 @@ broken-looking bar, which is worse than no feature:
    it is often `@/components/ui`, but not always, and the template's imports
    must match. Fix them while copying, not after.
 
-Then copy it to the project's component directory (`components/intentbar/` is a
-reasonable home), install `cmdk` and `lucide-react` if `shadcn add` did not, and
-mount it where the app's layout lives:
+Then copy it with the same script as step 0, which rewrites its import of the
+hook to the alias you vendored into:
+
+```bash
+node /tmp/intentbar/scripts/vendor.mjs <project>/src/lib/intentbar \
+  --palette <project>/src/components/intentbar/command-palette.tsx \
+  --alias @/lib/intentbar
+```
+
+Fix the `@/components/ui/*` imports if this project's `aliases.ui` differs,
+install `cmdk` and `lucide-react` if `shadcn add` did not, and mount it where
+the app's layout lives:
 
 ```tsx
 const [open, setOpen] = React.useState(false);
@@ -409,5 +440,5 @@ Hand over with the measured numbers, not a claim that it works:
 
 > 24 destinations, $0.10 per 1,000 lookups. 19 of 24 nav labels resolve
 > exact (free, 0 ms); the 5 that call the model do so at 0.95+. 14 test
-> phrases across EN and TR: 13 as expected, 1 abstains (`X` splits between
+> phrases across both shipped languages: 13 as expected, 1 abstains (`X` splits between
 > A and B — their descriptions overlap, worth a look).

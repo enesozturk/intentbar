@@ -1,44 +1,14 @@
 {
   "name": "intentbar",
   "version": "0.1.0",
+  "private": true,
   "description": "Natural-language navigation for your command palette. Type what you want, land on the right page \u2014 with the model classifying into your own route list, never writing URLs.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
-  "files": [
-    "dist",
-    "skills",
-    "templates/command-palette.tsx",
-    "README.md",
-    "LICENSE"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./server": {
-      "types": "./dist/server/index.d.ts",
-      "default": "./dist/server/index.js"
-    },
-    "./react": {
-      "types": "./dist/react/index.d.ts",
-      "default": "./dist/react/index.js"
-    }
-  },
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "vendor": "node scripts/vendor.mjs",
     "test": "tsx --test test/*.test.ts",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run test && npm run build"
-  },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
