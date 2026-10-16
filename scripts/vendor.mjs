@@ -33,12 +33,17 @@ function parseArgs(argv) {
   return options;
 }
 
-/** The commit the copy came from, so a vendored file can say what it is. */
+/**
+ * The commit the copy came from, so a vendored file can say what it is.
+ *
+ * Null when there is no git checkout to ask — which is the normal case when
+ * intentbar was installed as a skill, since the skill directory is a copy.
+ */
 function sourceRevision() {
   try {
     return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
   } catch {
-    return "unknown";
+    return null;
   }
 }
 
@@ -70,9 +75,10 @@ async function main() {
   if (palette && !alias) throw new Error("--palette needs --alias, so the copied palette can import the copied hook");
 
   const revision = sourceRevision();
+  const origin = revision ? `intentbar (${revision})` : "intentbar";
   const header =
-    `/* Vendored from intentbar (${revision}). Edit freely — re-running\n` +
-    `   scripts/vendor.mjs on a newer checkout overwrites this file. */`;
+    `/* Vendored from ${origin}. Edit freely — re-running\n` +
+    `   scripts/vendor.mjs from a newer copy overwrites this file. */`;
 
   const targetDir = resolve(target);
   let copied = 0;
@@ -91,7 +97,7 @@ async function main() {
     copied += 1;
   }
 
-  console.log(`Vendored ${copied} files from intentbar ${revision} into ${targetDir}`);
+  console.log(`Vendored ${copied} files from ${origin} into ${targetDir}`);
   console.log(
     palette
       ? `The palette imports the hook from ${alias}/react — check that alias resolves, and that your shadcn "command" and "dialog" components exist.`

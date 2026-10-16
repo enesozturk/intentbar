@@ -21,13 +21,18 @@ being asked, and report the measured result in step 7.
 
 ## 0. Copy the code in
 
-intentbar is not published to npm. It is dependency-free TypeScript that is
-copied into the project, shadcn-style, by a script in its own repo:
+intentbar is not published to npm. The code travels with this skill: the
+directory holding this `SKILL.md` also holds `src/`, `templates/`,
+`docs/` and `scripts/vendor.mjs`. Nothing needs to be cloned or downloaded —
+resolve that directory from this file's own path and run the copy script that
+is already sitting next to it:
 
 ```bash
-git clone git@github.com:enesozturk/intentbar.git /tmp/intentbar
-node /tmp/intentbar/scripts/vendor.mjs <project>/src/lib/intentbar --alias @/lib/intentbar
+node <skill-dir>/scripts/vendor.mjs <project>/src/lib/intentbar --alias @/lib/intentbar
 ```
+
+It copies the resolver, the server handler and the React hook, rewriting the
+ESM `.js` import specifiers into the extensionless form bundlers expect.
 
 Pick the target from the project's own layout and alias — `src/lib/`, `lib/`,
 `app/lib/`, a `packages/*` workspace — and pass the alias that resolves there
@@ -35,12 +40,12 @@ Pick the target from the project's own layout and alias — `src/lib/`, `lib/`,
 imports from `<alias>`, `<alias>/server` and `<alias>/react`; the examples below
 write `@/lib/intentbar`, so substitute yours.
 
-Add `--palette <file> ` to that command in step 5a, not here: whether the
-palette is copied at all depends on what you find in step 5.
+Add `--palette <file>` to that command in step 5a, not here: whether the palette
+is copied at all depends on what you find in step 5.
 
-If the checkout already exists, `git -C /tmp/intentbar pull` first, and re-run
-the script to take updates. Copied files carry a header naming the commit they
-came from.
+To take a newer version later, the user updates the skill
+(`npx skills update intentbar-setup`) and you re-run the script; the diff shows
+up in their own version control.
 
 ## 1. Learn the app before writing anything
 
@@ -241,7 +246,7 @@ one the same way; follow the convention already in the repo.
 That is the whole endpoint for most apps. **If, and only if, the URLs carry a
 workspace, team, org or project**, intentbar can also resolve "acme billing" to
 Billing inside Acme; that is one extra option on this same handler, documented
-in `docs/multi-tenant.md` in the intentbar checkout. Nothing else in this skill
+in `docs/multi-tenant.md` next to this file. Nothing else in this skill
 changes, so leave it out unless the app actually has tenants in the URL.
 
 For a server without Web-standard `Request`/`Response` (Express, older Node),
@@ -270,7 +275,7 @@ search for `cmdk`, `CommandDialog`, "command palette", a ⌘K key handler.
 
 ### 5a. Copy in the palette (no palette exists yet)
 
-The repo ships `templates/command-palette.tsx`, written against shadcn/ui's
+This skill ships `templates/command-palette.tsx`, written against shadcn/ui's
 current `command` and `dialog` components. It is copied into the project, the
 way shadcn distributes components, so the team owns and can restyle it.
 
@@ -294,7 +299,7 @@ Then copy it with the same script as step 0, which rewrites its import of the
 hook to the alias you vendored into:
 
 ```bash
-node /tmp/intentbar/scripts/vendor.mjs <project>/src/lib/intentbar \
+node <skill-dir>/scripts/vendor.mjs <project>/src/lib/intentbar \
   --palette <project>/src/components/intentbar/command-palette.tsx \
   --alias @/lib/intentbar
 ```
@@ -337,8 +342,8 @@ Two things in that file worth knowing before you edit it:
 
 Find the palette — `cmdk`, a Radix dialog, a custom one — and add rows to it.
 Match what is there, including its row markup, icon sizing and selected-row
-styling. `templates/command-palette.tsx` is a working reference for the
-behaviour even when you are not copying it.
+styling. The `templates/command-palette.tsx` beside this file is a working reference
+for the behaviour even when you are not copying it.
 
 ```tsx
 const { resolution, isResolving, error } = useIntentbar(search, {

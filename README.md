@@ -29,35 +29,50 @@ TypeScript and the palette is meant to be restyled, so it is distributed the way
 shadcn distributes components: the code is copied into your project and is yours
 from then on.
 
-The recommended path is the skill. In Claude Code, or any agent that reads
-skills:
+The whole repo is an agent skill — the instructions and the code ship together —
+so there is one command, and no script for you to run:
+
+```bash
+npx skills add enesozturk/intentbar
+```
+
+That lands intentbar in `.claude/skills/intentbar-setup/`, or the equivalent
+directory for whichever of the [80-odd supported
+agents](https://github.com/vercel-labs/skills) you use. The repo is private, and
+`skills add` reuses the git credentials you already have (`gh`, a credential
+helper, or SSH), so the same command works for anyone with access.
+
+Then, in the agent:
 
 ```
 /intentbar-setup
 ```
 
-It clones this repo, copies the code in, reads your router, writes the sitemap
-with real descriptions and phrasings, mounts the handler, wires your existing
-palette and verifies the result against the live API. The sitemap is the part
-that decides whether this works, and it has to be written from your codebase
-rather than from a template — which is why a copy command alone is not the whole
-install.
+It reads your router, copies the code in from the skill directory, writes the
+sitemap with real descriptions and phrasings, mounts the handler, wires your
+existing palette — or adds a ready shadcn one — and verifies the result against
+the live API. The sitemap is the part that decides whether this works, and it
+has to be written from your codebase rather than from a template, which is why a
+copy command alone is not the whole install.
 
-By hand, the copy is one script:
+To take a newer version: `npx skills update intentbar-setup`, then ask the agent
+to re-run the copy. The diff shows up in your own version control.
+
+### Without an agent
+
+The copy is one script, and the three sections below are what it leaves you to
+wire up:
 
 ```bash
 git clone git@github.com:enesozturk/intentbar.git
-cd intentbar
-
-node scripts/vendor.mjs ../my-app/src/lib/intentbar \
-  --palette ../my-app/src/components/command-palette.tsx \
+node intentbar/scripts/vendor.mjs ./src/lib/intentbar \
+  --palette ./src/components/command-palette.tsx \
   --alias @/lib/intentbar
 ```
 
 That copies the resolver, the server handler, the React hook and (with
 `--palette`) the ready ⌘K component, rewriting imports for your bundler and
-alias. Re-run it on a newer checkout to take updates — the diff shows up in your
-own version control.
+alias.
 
 The three pieces to wire up are below. The examples assume `@/lib/intentbar`;
 use whatever alias you vendored into.
@@ -278,7 +293,8 @@ put in front of users:
 ## Status
 
 Experimental, and deliberately not on npm — there is no release to depend on,
-no semver promise and no update channel beyond re-running the vendor script. The
+no semver promise and no update channel beyond `npx skills update` plus a
+re-run of the vendor script. The
 Decisions API is itself in public beta and currently serves one model
 (`gpt-6-luna`); if its shape changes, `src/core/providers/decisions.ts` is the
 only file that follows.
