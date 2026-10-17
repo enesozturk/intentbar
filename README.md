@@ -5,10 +5,18 @@
 Natural-language navigation for your command palette. The user types what they
 want, in any language, and lands on the right page.
 
-- The model picks an id from your route list. It never writes a URL.
-- Exact matches in `intents` skip the model: 0 ms, no request.
-- Adds rows to the palette you already have, or ships one built on shadcn's
-  `command`.
+- **Answers are typed, not generated.** The model picks an id from your route
+  list or abstains. An id that is not on the list is rejected, never turned
+  into a path.
+- **The sitemap is written from your app**, not from its route paths: the skill
+  mines nav labels, page headings and translation files for the words users
+  actually type. A sitemap written from paths is the usual reason this feature
+  feels broken.
+- **The thresholds are measured.** 0.72 to navigate, 0.6 for the assistant row,
+  both from real phrases — and the skill finishes by running your phrases
+  against the live API and reporting what it got.
+- **Known cost, and a free path.** $0.11 per 1,000 lookups on a 25-page
+  sitemap; an exact hit in `intents` skips the model at 0 ms.
 
 ## How it works
 
@@ -18,10 +26,6 @@ want, in any language, and lands on the right page.
    API](https://developers.openai.com/api/docs/guides/decisions). The API key
    stays server-side.
 3. **Palette row** — the hook returns the match, Enter navigates.
-
-The model either picks an id from the sitemap or abstains. Ids that are not in
-the sitemap are rejected, and anything below the confidence threshold (0.72)
-leaves the user where they are.
 
 All three as code: [docs/wiring.md](docs/wiring.md).
 
