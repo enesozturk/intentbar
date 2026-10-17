@@ -78,19 +78,34 @@ request.
 One request per phrase, 0.2–0.5s. Input tokens only, and no caching discount,
 so every lookup bills the whole sitemap.
 
-| sitemap | per 1,000 lookups |
-| --- | --- |
-| 25 lean destinations | $0.11 |
-| 25 with two-language intents and both questions | $0.18 |
+The default is OpenAI's decision model, `gpt-6-luna`, at $0.10 per 1M input
+tokens:
+
+| sitemap | tokens per lookup | per 1,000 lookups |
+| --- | --- | --- |
+| 25 lean destinations | 1,048 | $0.11 |
+| 25 with two-language intents and both questions | 1,793 | $0.18 |
 
 Exact `intents` hits are free. The two levers are a short sitemap and a full
 intents list; the skill does both by default.
+
+### Another decision model
+
+[TypeSafe's Jev](https://docs.typesafe.ai/models) is the same kind of model and
+about 2.4× cheaper: **$0.042 per 1M input tokens**, output free. At the token
+counts above that is **$0.04** and **$0.08** per 1,000 lookups.
+
+Its question types line up with the two intentbar asks — `choice` returns a
+value with `confidence` and `probabilities`, `noul` returns a 0–1 truth value
+where we use a predicate — so the swap is a `provider` function against
+`POST https://api.typesafe.ai/v1/systemone`. That provider is not written yet;
+`src/core/providers/decisions.ts` is the file to copy.
 
 ## What the skill installs
 
 It is opinionated, and sets up the stack we run in production:
 
-| | |
+| piece | what the skill sets up |
 | --- | --- |
 | palette | shadcn/ui `command` + `dialog`, i.e. cmdk — or your own, if you have one |
 | icons | `lucide-react` |
