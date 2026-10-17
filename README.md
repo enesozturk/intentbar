@@ -2,74 +2,59 @@
 
 # intentbar
 
-Natural-language navigation for your command palette. The user types where they
-want to go — in any language, with typos — and lands on the right page.
+Natural-language navigation for your command palette. The user types what they
+want, in any language, and lands on the right page.
 
-- **Zero dependencies.** One `fetch` call; the React hook is optional.
-- **The model never writes a URL.** It picks an id from your own route list, and
-  the path is assembled from that list. An answer that is not on it is an
-  abstention, not a redirect.
-- **Free and instant for known phrases.** An exact hit in your `intents` list
-  skips the model entirely.
+- Zero dependencies. One `fetch`; the React hook is optional.
+- The model picks an id from your route list. It never writes a URL.
+- Exact matches in `intents` skip the model: 0 ms, no request.
 
 ## How it works
 
-Three pieces, and the skill below writes all three:
+1. **Sitemap** — your read-only destinations: id, path, breadcrumb, a
+   description of what the page is for, and the phrases users type for it.
+2. **Endpoint** — the query goes to your server, which calls [OpenAI's Decisions
+   API](https://developers.openai.com/api/docs/guides/decisions). The API key
+   stays server-side.
+3. **Palette row** — the hook returns the match, Enter navigates.
 
-1. **A sitemap** — your read-only destinations. Each one carries an id, a path,
-   a breadcrumb, a description of what people come there to do, and the
-   phrasings they type for it.
-2. **One endpoint** — a model API key cannot live in a browser bundle, so the
-   typed text goes to your server. It asks [OpenAI's Decisions
-   API](https://developers.openai.com/api/docs/guides/decisions) two bounded
-   questions in a single request: *which of these pages is it?* (a `choice`) and
-   *is this really a question for the assistant?* (a `predicate`).
-3. **A palette row** — the hook hands your palette the match, and Enter
-   navigates.
-
-A malformed or invented answer is not a shape the model can return, and the
-guarantees follow from that: an id the sitemap does not contain is rejected
-rather than turned into a path, and anything under the confidence threshold
+The model either picks an id from the sitemap or abstains. Ids that are not in
+the sitemap are rejected, and anything below the confidence threshold (0.72)
 leaves the user where they are.
 
-[docs/wiring.md](docs/wiring.md) is the same three pieces as code.
+All three as code: [docs/wiring.md](docs/wiring.md).
 
 ## Install
 
-The whole repo is an agent skill — the instructions and the code ship together —
-so there is one command, and nothing to run afterwards:
+The repo is an agent skill, so the instructions and the code ship together.
 
 ```bash
 npx skills add enesozturk/intentbar
 ```
 
-It is listed at
-[skills.sh/enesozturk/intentbar](https://www.skills.sh/enesozturk/intentbar),
-and the same command works for every agent that reads skills — Claude Code,
-Codex, Cursor, OpenCode and the rest.
+Works with any agent that reads skills — Claude Code, Codex, Cursor, OpenCode.
+Listed on [skills.sh](https://www.skills.sh/enesozturk/intentbar).
 
-Then, in the agent:
+Then run the skill:
 
 ```
 /intentbar-setup
 ```
 
-It reads your router, copies the code in from the skill directory (plain
-TypeScript, no build step and no install script), writes the sitemap from your
-own pages and vocabulary, mounts the handler, wires your existing palette — or
-adds a ready shadcn one — and verifies the result against the live API.
+It reads your router, copies the code in (plain TypeScript, no build step),
+writes the sitemap from your pages, mounts the endpoint, wires your palette or
+adds a shadcn one, and tests the result against the live API.
 
-The sitemap is the part that decides whether this works, which is why a copy
-command alone is not the whole install: written from route paths it performs
-badly, and written from the app it is the product.
+The sitemap has to come from the app, not from a list of route paths: the
+descriptions and `intents` are what the model reads. That is the reason this is
+a skill and not a copy command.
 
-Updating is `npx skills update intentbar-setup` plus a fresh copy; the diff
-shows up in your own version control.
+To update: `npx skills update intentbar-setup`, then copy again.
 
-## What it does, measured
+## Examples
 
-Eight destinations — Dashboard, Orders, Products, Assistant, and Settings ›
-Billing / Members / API tokens / Profile — with an English-only sitemap:
+Measured on an 8-destination English sitemap — Dashboard, Orders, Products,
+Assistant, and Settings › Billing / Members / API tokens / Profile:
 
 | typed | row shown | |
 | --- | --- | --- |
@@ -82,42 +67,37 @@ Billing / Members / API tokens / Profile — with an English-only sitemap:
 | `how did last week go` | Ask the assistant, Dashboard below it | 0.97 / 0.73 |
 | `asdfgh qwerty` | nothing | abstains |
 
-Three things in that table are the whole design. A typo resolves because the
-model reads intent, not strings. A Spanish sentence resolves against English
-descriptions, so a sitemap does not have to be translated to serve translated
-users. And a question is answered with the assistant rather than with "no
-matching page found" — the fallback row, which rides along in the same request.
+Typos and other languages resolve without extra work: the model reads intent,
+not strings, so the sitemap does not need translating. Questions get an
+assistant row instead of "no results" — that check rides along in the same
+request.
 
-## What it costs
+## Cost
 
-One request per settled phrase, typically **0.2–0.5s**. Input only — the
-Decisions API charges no output tokens, and there is no caching discount, so
-every lookup bills the whole sitemap.
+One request per phrase, 0.2–0.5s. Input tokens only, and no caching discount,
+so every lookup bills the whole sitemap.
 
-Measured: **$0.11 per 1,000 lookups** for 25 lean destinations, **$0.18** for 25
-real ones with two-language intents and both optional questions. A storefront
-with a million monthly users, where only navigational text reaches intentbar,
-lands in single-digit dollars a month.
+| sitemap | per 1,000 lookups |
+| --- | --- |
+| 25 lean destinations | $0.11 |
+| 25 with two-language intents and both questions | $0.18 |
 
-Exact `intents` hits cost nothing and skip the network entirely, so the two
-levers are a short sitemap and a well-filled intents list. Both are in the
-`intentbar-setup` skill as defaults.
+Exact `intents` hits are free. The two levers are a short sitemap and a full
+intents list; the skill does both by default.
 
 ## More
 
 - [docs/wiring.md](docs/wiring.md) — the sitemap, the endpoint, the palette and
   the fallback row, as code.
-- [docs/reference.md](docs/reference.md) — options, and the guarantees the test
-  suite is about.
+- [docs/reference.md](docs/reference.md) — options and guarantees.
 - [docs/multi-tenant.md](docs/multi-tenant.md) — resolving "acme billing" inside
-  the workspace the session says the user belongs to.
+  the workspace the user belongs to.
 
 ## Status
 
-Experimental, and deliberately not on npm — there is no release to depend on,
-no semver promise and no update channel beyond `npx skills update` and a fresh
-copy into your project. The Decisions API is itself in public beta and serves
-one model today (`gpt-6-luna`); if its shape changes,
-`src/core/providers/decisions.ts` is the only file that follows.
+Experimental. Not on npm: no releases, no semver, update with `npx skills
+update`. The Decisions API is in public beta and serves one model
+(`gpt-6-luna`); `src/core/providers/decisions.ts` is the only file that depends
+on it.
 
 MIT
