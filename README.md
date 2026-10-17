@@ -64,8 +64,7 @@ command alone is not the whole install: written from route paths it performs
 badly, and written from the app it is the product.
 
 Updating is `npx skills update intentbar-setup` plus a fresh copy; the diff
-shows up in your own version control. The repo is private, and `skills add`
-reuses the git credentials you already have (`gh`, a credential helper, SSH).
+shows up in your own version control.
 
 ## What it does, measured
 
