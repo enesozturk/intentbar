@@ -58,24 +58,9 @@ copy command alone is not the whole install.
 To take a newer version: `npx skills update intentbar-setup`, then ask the agent
 to re-run the copy. The diff shows up in your own version control.
 
-### Without an agent
-
-The copy is one script, and the three sections below are what it leaves you to
-wire up:
-
-```bash
-git clone git@github.com:enesozturk/intentbar.git
-node intentbar/scripts/vendor.mjs ./src/lib/intentbar \
-  --palette ./src/components/command-palette.tsx \
-  --alias @/lib/intentbar
-```
-
-That copies the resolver, the server handler, the React hook and (with
-`--palette`) the ready ⌘K component, rewriting imports for your bundler and
-alias.
-
-The three pieces to wire up are below. The examples assume `@/lib/intentbar`;
-use whatever alias you vendored into.
+The three pieces it wires up are below — you own them afterwards, so this is
+what you are reading when you review the diff. The examples assume
+`@/lib/intentbar`; substitute the alias it vendored into.
 
 ## 1. The sitemap
 
@@ -293,9 +278,8 @@ put in front of users:
 ## Status
 
 Experimental, and deliberately not on npm — there is no release to depend on,
-no semver promise and no update channel beyond `npx skills update` plus a
-re-run of the vendor script. The
-Decisions API is itself in public beta and currently serves one model
+no semver promise and no update channel beyond `npx skills update` and a fresh
+copy into your project. The Decisions API is itself in public beta and currently serves one model
 (`gpt-6-luna`); if its shape changes, `src/core/providers/decisions.ts` is the
 only file that follows.
 
