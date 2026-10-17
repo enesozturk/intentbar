@@ -48,6 +48,11 @@ so there is one command, and nothing to run afterwards:
 npx skills add enesozturk/intentbar
 ```
 
+It is listed at
+[skills.sh/enesozturk/intentbar](https://www.skills.sh/enesozturk/intentbar),
+and the same command works for every agent that reads skills — Claude Code,
+Codex, Cursor, OpenCode and the rest.
+
 Then, in the agent:
 
 ```
