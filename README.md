@@ -1,14 +1,9 @@
+<img src="docs/banner.png" alt="intentbar — a command palette resolving &quot;how do I add someone to the team&quot; to Settings › Members" width="100%">
+
 # intentbar
 
 Natural-language navigation for your command palette. The user types where they
 want to go — in any language, with typos — and lands on the right page.
-
-```
-⌘K  how do i add someone to the team
-    ───────────────────────────────────────────
-    Go to
-    ✦ Settings › Members                     ↵
-```
 
 - **Zero dependencies.** One `fetch` call; the React hook is optional.
 - **The model never writes a URL.** It picks an id from your own route list, and
