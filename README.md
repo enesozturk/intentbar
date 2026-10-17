@@ -5,9 +5,10 @@
 Natural-language navigation for your command palette. The user types what they
 want, in any language, and lands on the right page.
 
-- Zero dependencies. One `fetch`; the React hook is optional.
 - The model picks an id from your route list. It never writes a URL.
 - Exact matches in `intents` skip the model: 0 ms, no request.
+- Adds rows to the palette you already have, or ships one built on shadcn's
+  `command`.
 
 ## How it works
 
@@ -84,6 +85,23 @@ so every lookup bills the whole sitemap.
 
 Exact `intents` hits are free. The two levers are a short sitemap and a full
 intents list; the skill does both by default.
+
+## What the skill installs
+
+It is opinionated, and sets up the stack we run in production:
+
+| | |
+| --- | --- |
+| palette | shadcn/ui `command` + `dialog`, i.e. cmdk — or your own, if you have one |
+| icons | `lucide-react` |
+| client | a React hook, `useIntentbar` |
+| server | one route handler, Web-standard `Request` → `Response` |
+| model call | `fetch` to OpenAI's Decisions API |
+
+Your codebase may work differently — another palette, the AI SDK, an AI gateway,
+Vue, no React at all. Say so when you run the skill and the agent will follow
+your stack instead. The resolver only needs a `provider` function, so replacing
+the model call is a single file.
 
 ## More
 

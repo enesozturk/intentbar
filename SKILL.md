@@ -14,6 +14,15 @@ Work in this order. Do not skip step 1 — a sitemap written from route paths
 alone performs badly, and that is the single most common reason this feature
 feels broken.
 
+What this skill sets up is a default stack, not a requirement: shadcn/ui's
+`command` for the palette, a React hook on the client, one route handler on the
+server, and `fetch` to the Decisions API for the model call. Where the project
+already does one of these differently — another palette, the AI SDK or a
+gateway for model calls, a framework that is not React — follow the project and
+say what you changed. Installing a package the project would have reached for
+anyway is fine; only the resolver's shape is fixed, and the model call is one
+file behind the `provider` option.
+
 Two things in step 2 are **defaults, not options**: keeping the sitemap small
 (2a) and filling the intents list from the app's own vocabulary (2b). They are
 the only two levers on what this costs and how fast it feels, so do both without
@@ -30,8 +39,8 @@ would any file in this codebase:
 cp -R <skill-dir>/src <project>/src/lib/intentbar
 ```
 
-The files are dependency-free, import each other relatively and extensionlessly,
-and use no build step, so a plain copy compiles as it lands.
+The files import each other relatively and extensionlessly and need no build
+step, so a plain copy compiles as it lands.
 
 Choose the destination from the project's own layout — `src/lib/`, `lib/`,
 `app/lib/`, a `packages/*` workspace — and note the alias that resolves there
