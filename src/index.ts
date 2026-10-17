@@ -1,8 +1,8 @@
-export { resolveIntent, findScopeMention, DEFAULT_CONFIDENCE_THRESHOLD, DEFAULT_FALLBACK_THRESHOLD } from "./core/resolve.js";
-export type { FallbackConfig, ResolveOptions } from "./core/resolve.js";
-export { normalizeQuery, MAX_QUERY_LENGTH } from "./core/normalize.js";
-export { decisionsProvider } from "./core/providers/decisions.js";
-export type { DecisionsOptions } from "./core/providers/decisions.js";
+export { resolveIntent, findScopeMention, DEFAULT_CONFIDENCE_THRESHOLD, DEFAULT_FALLBACK_THRESHOLD } from "./core/resolve";
+export type { FallbackConfig, ResolveOptions } from "./core/resolve";
+export { normalizeQuery, MAX_QUERY_LENGTH } from "./core/normalize";
+export { decisionsProvider } from "./core/providers/decisions";
+export type { DecisionsOptions } from "./core/providers/decisions";
 export type {
   Answer,
   ChoiceQuestion,
@@ -15,9 +15,9 @@ export type {
   ResolutionMethod,
   ResolvedScope,
   Scope,
-} from "./core/types.js";
+} from "./core/types";
 
-import type { Destination } from "./core/types.js";
+import type { Destination } from "./core/types";
 
 /**
  * Identity function that types your sitemap.

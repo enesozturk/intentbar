@@ -6,8 +6,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { defineSitemap, findScopeMention, normalizeQuery, resolveIntent } from "../src/index.js";
-import type { Answer, Provider, Question, Scope } from "../src/core/types.js";
+import { defineSitemap, findScopeMention, normalizeQuery, resolveIntent } from "../src/index";
+import type { Answer, Provider, Question, Scope } from "../src/core/types";
 
 const SITEMAP = defineSitemap([
   {

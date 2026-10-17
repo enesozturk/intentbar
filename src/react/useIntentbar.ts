@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { Resolution } from "../core/types.js";
+import type { Resolution } from "../core/types";
 
 /** Wait for the user to pause typing before spending a model call. */
 const DEFAULT_DEBOUNCE_MS = 400;

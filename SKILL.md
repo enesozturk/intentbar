@@ -1,6 +1,6 @@
 ---
 name: intentbar-setup
-description: Installs and wires up intentbar in this codebase — there is no npm package, so it copies the resolver in from the intentbar repo, adds a ready shadcn/ui command palette when the app has none, reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
+description: Installs and wires up intentbar in this codebase — there is no npm package, so it copies the resolver in from the source that ships with this skill, adds a ready shadcn/ui command palette when the app has none, reads the app's routes, writes a deliberately small sitemap with real descriptions, fills each page's intents from the app's own navigation labels and translation files so common phrases resolve instantly and free, mounts the server handler, and connects the hook to the existing command palette. Use when the user asks to set up, install, configure or fix intentbar, or wants natural-language / AI navigation in their command palette.
 ---
 
 # Installing intentbar
@@ -22,30 +22,29 @@ being asked, and report the measured result in step 7.
 ## 0. Copy the code in
 
 intentbar is not published to npm. The code travels with this skill: the
-directory holding this `SKILL.md` also holds `src/`, `templates/`,
-`docs/` and `scripts/vendor.mjs`. Nothing needs to be cloned or downloaded —
-resolve that directory from this file's own path and run the copy script that
-is already sitting next to it:
+directory holding this `SKILL.md` also holds `src/`, `templates/` and `docs/`.
+Nothing is cloned, downloaded or installed — you copy the source in, the way you
+would any file in this codebase:
 
 ```bash
-node <skill-dir>/scripts/vendor.mjs <project>/src/lib/intentbar --alias @/lib/intentbar
+cp -R <skill-dir>/src <project>/src/lib/intentbar
 ```
 
-It copies the resolver, the server handler and the React hook, rewriting the
-ESM `.js` import specifiers into the extensionless form bundlers expect.
+The files are dependency-free, import each other relatively and extensionlessly,
+and use no build step, so a plain copy compiles as it lands.
 
-Pick the target from the project's own layout and alias — `src/lib/`, `lib/`,
-`app/lib/`, a `packages/*` workspace — and pass the alias that resolves there
+Choose the destination from the project's own layout — `src/lib/`, `lib/`,
+`app/lib/`, a `packages/*` workspace — and note the alias that resolves there
 (`tsconfig.json` `paths`, or `components.json` `aliases`). Everything after this
 imports from `<alias>`, `<alias>/server` and `<alias>/react`; the examples below
 write `@/lib/intentbar`, so substitute yours.
 
-Add `--palette <file>` to that command in step 5a, not here: whether the palette
-is copied at all depends on what you find in step 5.
+The copied files are the project's from that moment. If its conventions differ
+from what you copied — import ordering, a lint rule, a `.d.ts` style — fix them
+there rather than leaving code that stands out as foreign.
 
-To take a newer version later, the user updates the skill
-(`npx skills update intentbar-setup`) and you re-run the script; the diff shows
-up in their own version control.
+To take a newer version later, the user runs `npx skills update intentbar-setup`
+and you copy again; the diff shows up in their own version control.
 
 ## 1. Learn the app before writing anything
 
@@ -114,8 +113,8 @@ Rules that decide whether this works:
   table".
 - `breadcrumb` is what the palette row shows. Match the app's own navigation
   labels, so the row looks like somewhere the user has been.
-- Give adjacent pages *distinct* descriptions. "Google Ads" and "Google Ads
-  report" that read alike will split probability and abstain — the most
+- Give adjacent pages *distinct* descriptions. "Orders" and "Order reports"
+  that read alike will split probability and abstain — the most
   confusing failure mode, because both answers were nearly right.
 
 The two rules below are not polish. They are the only two levers on what this
@@ -295,13 +294,16 @@ broken-looking bar, which is worse than no feature:
    it is often `@/components/ui`, but not always, and the template's imports
    must match. Fix them while copying, not after.
 
-Then copy it with the same script as step 0, which rewrites its import of the
-hook to the alias you vendored into:
+Then copy it in and point its one placeholder import at the code you copied in
+step 0:
 
 ```bash
-node <skill-dir>/scripts/vendor.mjs <project>/src/lib/intentbar \
-  --palette <project>/src/components/intentbar/command-palette.tsx \
-  --alias @/lib/intentbar
+cp <skill-dir>/templates/command-palette.tsx <project>/src/components/intentbar/command-palette.tsx
+```
+
+```diff
+- import { useIntentbar } from "intentbar/react";
++ import { useIntentbar } from "@/lib/intentbar/react";
 ```
 
 Fix the `@/components/ui/*` imports if this project's `aliases.ui` differs,
@@ -372,7 +374,7 @@ Then:
 ## 6. The fallback row (optional, but this is the good part)
 
 If the app has an assistant, a chat, or a search page that accepts a query,
-configure `fallback`. Text like "how are my ads performing" is not a
+configure `fallback`. Text like "why did my revenue drop last week" is not a
 destination, and without this the palette answers it with "no matching page".
 
 ```ts
@@ -392,8 +394,8 @@ points at that same page — with the query prefilled, opening it empty is a wor
 version of the same row.
 
 A confident page match and a strong fallback often both appear, because both
-answers are right ("how did last week go" matches a Dashboard at 0.93 and scores
-1.00 as a question). Show the question first and the page below it, and say so
+answers are right ("how did last week go" matches a Dashboard at 0.73 and scores
+0.97 as a question). Show the question first and the page below it, and say so
 to the user — it is a product decision they may want inverted if their pages
 answer questions better than their assistant does.
 

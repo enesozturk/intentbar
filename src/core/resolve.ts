@@ -1,4 +1,4 @@
-import { MAX_QUERY_LENGTH, normalizeQuery, phraseKey, words } from "./normalize.js";
+import { MAX_QUERY_LENGTH, normalizeQuery, phraseKey, words } from "./normalize";
 import type {
   Answer,
   Destination,
@@ -9,7 +9,7 @@ import type {
   ResolutionMethod,
   ResolvedScope,
   Scope,
-} from "./types.js";
+} from "./types";
 
 /**
  * Below this, a choice is a guess rather than a judgement, and intentbar

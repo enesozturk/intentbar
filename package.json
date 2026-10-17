@@ -6,7 +6,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "vendor": "node scripts/vendor.mjs",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit"
   },

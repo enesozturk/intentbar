@@ -1,7 +1,7 @@
-import { decisionsProvider } from "../core/providers/decisions.js";
-import { resolveIntent, type FallbackConfig } from "../core/resolve.js";
-import { MAX_QUERY_LENGTH } from "../core/normalize.js";
-import type { Destination, Provider, Resolution, Scope } from "../core/types.js";
+import { decisionsProvider } from "../core/providers/decisions";
+import { resolveIntent, type FallbackConfig } from "../core/resolve";
+import { MAX_QUERY_LENGTH } from "../core/normalize";
+import type { Destination, Provider, Resolution, Scope } from "../core/types";
 
 export type HandlerConfig = {
   sitemap: readonly Destination[];

@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { decisionsProvider } from "../src/index.js";
+import { decisionsProvider } from "../src/index";
 
 const REQUEST = { input: "x", questions: [] };
 const ok = () => new Response(JSON.stringify({ answers: [] }), { status: 200 });

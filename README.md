@@ -30,7 +30,7 @@ shadcn distributes components: the code is copied into your project and is yours
 from then on.
 
 The whole repo is an agent skill — the instructions and the code ship together —
-so there is one command, and no script for you to run:
+so there is one command, and nothing to run afterwards:
 
 ```bash
 npx skills add enesozturk/intentbar
@@ -48,19 +48,19 @@ Then, in the agent:
 /intentbar-setup
 ```
 
-It reads your router, copies the code in from the skill directory, writes the
-sitemap with real descriptions and phrasings, mounts the handler, wires your
-existing palette — or adds a ready shadcn one — and verifies the result against
-the live API. The sitemap is the part that decides whether this works, and it
+It reads your router, copies the code in from the skill directory — plain
+TypeScript files, no build step and no install script — writes the sitemap with
+real descriptions and phrasings, mounts the handler, wires your existing palette
+(or adds a ready shadcn one) and verifies the result against the live API. The sitemap is the part that decides whether this works, and it
 has to be written from your codebase rather than from a template, which is why a
 copy command alone is not the whole install.
 
 To take a newer version: `npx skills update intentbar-setup`, then ask the agent
-to re-run the copy. The diff shows up in your own version control.
+to copy it in again. The diff shows up in your own version control.
 
 The three pieces it wires up are below — you own them afterwards, so this is
 what you are reading when you review the diff. The examples assume
-`@/lib/intentbar`; substitute the alias it vendored into.
+`@/lib/intentbar`; substitute the alias it copied into.
 
 ## 1. The sitemap
 
@@ -115,7 +115,7 @@ import { sitemap } from "@/intentbar.sitemap";
 
 export const POST = createHandler({
   sitemap,
-  appContext: "An ad-management app for marketing teams.",
+  appContext: "An e-commerce admin panel for a store owner.",
   authorize: async (request) => Boolean(await getSession(request)),
 });
 ```
@@ -183,8 +183,8 @@ answer for an earlier phrase can never become what Enter does.
 
 ## The fallback row
 
-Some text is not a destination. "How are my ads performing" is a question, and
-answering it with "no matching page found" is a dead end.
+Some text is not a destination. "Why did my revenue drop last week" is a
+question, and answering it with "no matching page found" is a dead end.
 
 ```ts
 export const POST = createHandler({
@@ -196,14 +196,15 @@ export const POST = createHandler({
 ```
 
 A `predicate` question rides along in the same request — no extra round trip —
-and `resolution.fallback` is set when the text reads as work for it. It
-separates cleanly in practice:
+and `resolution.fallback` is set when the text reads as work for it. Measured
+against a 8-destination sitemap, it separates sharply, and what hedging there is
+stays well clear of a navigational phrase:
 
 | prompt-like | | destination-like | |
 | --- | --- | --- | --- |
-| `how are my ads performing` | 0.94 | `billing settings` | 0.00 |
-| `why did my cpa go up last week` | 1.00 | `add workspace member` | 0.00 |
-| `which product sells best` | 0.97 | `show me the tasks board` | 0.00 |
+| `why did my revenue drop last week` | 1.00 | `billing settings` | 0.00 |
+| `how many orders came in yesterday` | 1.00 | `add someone to my workspace` | 0.00 |
+| `which product sells best` | 0.72 | `create an api key` | 0.00 |
 
 Give it its own row and let it take Enter: the user wrote a question, not a
 destination. Override `fallback.instructions` to point it at a docs search, a
@@ -213,8 +214,7 @@ ticket form, or anything else.
 
 A confident page match and a strong fallback are not exclusive. "How did last
 week go" matches a Dashboard page at 0.73 — just over the threshold — *and*
-scores 0.98 as a question,
-because both answers are right. intentbar returns both, with their numbers, and
+scores 0.97 as a question, because both answers are right. intentbar returns both, with their numbers, and
 does not pick for you.
 
 The default we recommend, and ship in the examples: **show the question row

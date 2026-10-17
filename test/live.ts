@@ -7,7 +7,7 @@
  * nothing about whether the model picks the right page. This is the loop the
  * setup skill tells users to run on their own sitemap.
  */
-import { decisionsProvider, defineSitemap, resolveIntent } from "../src/index.js";
+import { decisionsProvider, defineSitemap, resolveIntent } from "../src/index";
 
 const sitemap = defineSitemap([
   {

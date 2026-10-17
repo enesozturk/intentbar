@@ -28,6 +28,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+// Point this at wherever the resolver was copied, e.g. "@/lib/intentbar/react".
 import { useIntentbar } from "intentbar/react";
 
 /** A command your app already offers, shown below the resolved rows. */

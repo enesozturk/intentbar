@@ -1,4 +1,4 @@
-import type { Answer, Provider } from "../types.js";
+import type { Answer, Provider } from "../types";
 
 const ENDPOINT = "https://api.openai.com/v1/decisions";
 

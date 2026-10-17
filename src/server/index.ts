@@ -1,2 +1,2 @@
-export { createHandler } from "./handler.js";
-export type { HandlerConfig } from "./handler.js";
+export { createHandler } from "./handler";
+export type { HandlerConfig } from "./handler";
